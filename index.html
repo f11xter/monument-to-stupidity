@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+
+<head>
+  <title>Monument to Stupidity</title>
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="author" content="Felix Waller" />
+  <meta name="description"
+    content="The Monument to Stupidity is a place to share your mistakes and revel in their humanity." />
+  <meta property="og:description"
+    content="The Monument to Stupidity is a place to share your mistakes and revel in their humanity." />
+  <meta property="og:title" content="Monument to Stupidity" />
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font: inherit;
+    }
+
+    html {
+      font-family: sans-serif;
+      line-height: 1.5;
+    }
+
+    body {
+      max-inline-size: 60ch;
+      margin: auto;
+      padding: 0.5em;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    p {
+      margin-block: 0;
+    }
+
+    h1 {
+      font-size: 1.8em;
+    }
+
+    h2 {
+      font-size: 1.4em;
+    }
+
+    textarea {
+      display: block;
+      inline-size: 100%;
+      resize: vertical;
+    }
+
+    button {
+      padding: 0.3em 0.6em;
+    }
+
+    .flow *+* {
+      margin-block-start: var(--flow-space, 1em);
+    }
+
+    [data-visible="false"] {
+      display: none;
+    }
+
+    [data-valid="false"] {
+      color: red;
+    }
+  </style>
+</head>
+
+<body class="flow">
+  <header>
+    <h1>Monument to Stupidity</h1>
+  </header>
+
+  <main>
+    <section>
+      <h2>Contribute to the monument</h2>
+
+      <p id="success" data-visible="false">Success!</p>
+
+      <form>
+        <label for="text">
+          Tell us about a mistake you made:
+          <textarea id="text" name="text" rows="5" spellcheck="true" required></textarea>
+        </label>
+
+        <p><span id="count" data-valid="true">0</span> / 1000 characters</p>
+
+        <button type="submit" id="submit">Post</button>
+      </form>
+    </section>
+
+    <section>
+      <h2>View the monument</h2>
+
+      <div id="monument"></div>
+
+      <button type="button" id="prev" data-visible="false">&larr; Prev</button>
+      <button type="button" id="next" data-visible="true">Next &rarr;</button>
+    </section>
+
+  </main>
+
+  <script src="pb-sdk/dist/pocketbase.umd.js"></script>
+  <script>
+    const pb = new PocketBase("https://monument-to-stupidity-db.fly.dev");
+
+    let page = 1;
+    let totalPages;
+
+    const text = document.getElementById("text");
+    const count = document.getElementById("count");
+    const submit = document.getElementById("submit");
+    const success = document.getElementById("success");
+    const monument = document.getElementById("monument");
+    const prev = document.getElementById("prev");
+    const next = document.getElementById("next");
+
+    getPosts();
+
+    text.addEventListener("input", () => {
+      count.innerText = text.value.length;
+
+      if (text.value.length > 1000) {
+        count.setAttribute("data-valid", "false");
+        submit.disabled = true;
+      }
+      else {
+        count.setAttribute("data-valid", "true");
+        submit.disabled = false;
+      }
+    });
+
+    submit.addEventListener("click", (e) => {
+      // prevent page reload
+      e.preventDefault();
+
+      if (text.value.length >= 3 && text.value.length <= 1000) {
+        // post to server
+        pb.collection("posts").create({ text: text.value });
+
+        // reset form
+        text.value = "";
+        count.innerText = 0;
+        count.setAttribute("data-valid", "true");
+        submit.disabled = false;
+
+        // show success msg
+        success.setAttribute("data-visible", "true");
+      }
+    });
+
+    prev.addEventListener("click", () => {
+      if (page > 1) {
+        getPosts(--page);
+      }
+      showPaginationButtons();
+    });
+
+    next.addEventListener("click", () => {
+      if (page < totalPages) {
+        getPosts(++page);
+      }
+      showPaginationButtons();
+    });
+
+    function getPosts(page) {
+      pb.collection("posts")
+        .getList(page, 20, {
+          sort: "-created",
+        })
+        .then((response) => {
+          totalPages = response.totalPages;
+
+          clearPosts();
+
+          for (const post of response.items) {
+            displayPost(post.text, post.created)
+          }
+        });
+    }
+
+    function clearPosts() {
+      for (const el of document.querySelectorAll("#monument div")) {
+        el.remove();
+      }
+    }
+
+    function displayPost(text, timestamp) {
+      const content = document.createElement("p");
+      content.innerText = text;
+
+      const date = document.createElement("p");
+      date.innerText = timestamp.split(" ")[0];
+
+      const card = document.createElement("div");
+      card.append(content, date);
+
+      monument.append(card);
+    }
+
+    function showPaginationButtons() {
+      if (page > 1) {
+        prev.setAttribute("data-visible", "true");
+      }
+      else {
+        prev.setAttribute("data-visible", "false");
+      }
+
+      if (page < totalPages) {
+        next.setAttribute("data-visible", "true");
+      }
+      else {
+        next.setAttribute("data-visible", "false");
+      }
+    }
+  </script>
+</body>
+
+</html>
