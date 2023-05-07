@@ -13,63 +13,10 @@
     content="The Monument to Stupidity is a place to share your mistakes and revel in their humanity." />
   <meta property="og:title" content="Monument to Stupidity" />
 
-  <style>
-    * {
-      box-sizing: border-box;
-      font: inherit;
-    }
+  <link href="styles.css" rel="stylesheet" />
 
-    html {
-      font-family: sans-serif;
-      line-height: 1.5;
-    }
-
-    body {
-      max-inline-size: 60ch;
-      margin: auto;
-      padding: 0.5em;
-    }
-
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6,
-    p {
-      margin-block: 0;
-    }
-
-    h1 {
-      font-size: 1.8em;
-    }
-
-    h2 {
-      font-size: 1.4em;
-    }
-
-    textarea {
-      display: block;
-      inline-size: 100%;
-      resize: vertical;
-    }
-
-    button {
-      padding: 0.3em 0.6em;
-    }
-
-    .flow *+* {
-      margin-block-start: var(--flow-space, 1em);
-    }
-
-    [data-visible="false"] {
-      display: none;
-    }
-
-    [data-valid="false"] {
-      color: red;
-    }
-  </style>
+  <script src="pb-sdk/dist/pocketbase.umd.js"></script>
+  <script src="app.js" defer></script>
 </head>
 
 <body class="flow">
@@ -78,148 +25,47 @@
   </header>
 
   <main>
-    <section>
-      <h2>Contribute to the monument</h2>
+    <p>
+      The <cite>Monument to Stupidity</cite> is a place to share your mistakes and revel in their
+      humanity. Sometimes we mess up and that's OK. <a href="#contribute">Share your stories</a> with us completely
+      anonymously and join us in
+      celebrating our ongoing stupidity.
+    </p>
 
-      <p id="success" data-visible="false">Success!</p>
+    <div id="monument"></div>
 
-      <form>
-        <label for="text">
-          Tell us about a mistake you made:
-          <textarea id="text" name="text" rows="5" spellcheck="true" required></textarea>
-        </label>
+    <div class="grid:2">
+      <span class="flow-space:0">
+        <button type="button" id="prev" class="inline-size:100%" data-visible="false">&larr; Prev</button>
+      </span>
+      <span class="flow-space:0">
+        <button type="button" id="next" class="inline-size:100%" data-visible="false">Next &rarr;</button>
+      </span>
+    </div>
 
-        <p><span id="count" data-valid="true">0</span> / 1000 characters</p>
+    <h2 id="contribute">Contribute to the monument</h2>
 
-        <button type="submit" id="submit">Post</button>
-      </form>
-    </section>
+    <p id="success" data-visible="false">Success! Refresh the page to see your contribution!</p>
 
-    <section>
-      <h2>View the monument</h2>
+    <form>
+      <label for="text">
+        Tell us about a mistake you made:
+        <textarea id="text" name="text" class="inline-size:100%" rows="5" spellcheck="true" required></textarea>
+      </label>
 
-      <div id="monument"></div>
+      <p><span id="count" data-valid="false">0</span> / 1000 characters</p>
 
-      <button type="button" id="prev" data-visible="false">&larr; Prev</button>
-      <button type="button" id="next" data-visible="true">Next &rarr;</button>
-    </section>
-
+      <button type="submit" id="submit" disabled>Post</button>
+    </form>
   </main>
 
-  <script src="pb-sdk/dist/pocketbase.umd.js"></script>
-  <script>
-    const pb = new PocketBase("https://monument-to-stupidity-db.fly.dev");
-
-    let page = 1;
-    let totalPages;
-
-    const text = document.getElementById("text");
-    const count = document.getElementById("count");
-    const submit = document.getElementById("submit");
-    const success = document.getElementById("success");
-    const monument = document.getElementById("monument");
-    const prev = document.getElementById("prev");
-    const next = document.getElementById("next");
-
-    getPosts();
-
-    text.addEventListener("input", () => {
-      count.innerText = text.value.length;
-
-      if (text.value.length > 1000) {
-        count.setAttribute("data-valid", "false");
-        submit.disabled = true;
-      }
-      else {
-        count.setAttribute("data-valid", "true");
-        submit.disabled = false;
-      }
-    });
-
-    submit.addEventListener("click", (e) => {
-      // prevent page reload
-      e.preventDefault();
-
-      if (text.value.length >= 3 && text.value.length <= 1000) {
-        // post to server
-        pb.collection("posts").create({ text: text.value });
-
-        // reset form
-        text.value = "";
-        count.innerText = 0;
-        count.setAttribute("data-valid", "true");
-        submit.disabled = false;
-
-        // show success msg
-        success.setAttribute("data-visible", "true");
-      }
-    });
-
-    prev.addEventListener("click", () => {
-      if (page > 1) {
-        getPosts(--page);
-      }
-      showPaginationButtons();
-    });
-
-    next.addEventListener("click", () => {
-      if (page < totalPages) {
-        getPosts(++page);
-      }
-      showPaginationButtons();
-    });
-
-    function getPosts(page) {
-      pb.collection("posts")
-        .getList(page, 20, {
-          sort: "-created",
-        })
-        .then((response) => {
-          totalPages = response.totalPages;
-
-          clearPosts();
-
-          for (const post of response.items) {
-            displayPost(post.text, post.created)
-          }
-        });
-    }
-
-    function clearPosts() {
-      for (const el of document.querySelectorAll("#monument div")) {
-        el.remove();
-      }
-    }
-
-    function displayPost(text, timestamp) {
-      const content = document.createElement("p");
-      content.innerText = text;
-
-      const date = document.createElement("p");
-      date.innerText = timestamp.split(" ")[0];
-
-      const card = document.createElement("div");
-      card.append(content, date);
-
-      monument.append(card);
-    }
-
-    function showPaginationButtons() {
-      if (page > 1) {
-        prev.setAttribute("data-visible", "true");
-      }
-      else {
-        prev.setAttribute("data-visible", "false");
-      }
-
-      if (page < totalPages) {
-        next.setAttribute("data-visible", "true");
-      }
-      else {
-        next.setAttribute("data-visible", "false");
-      }
-    }
-  </script>
+  <footer>
+    <hr />
+    <p>
+      Got feedback or suggestions? Let me know on Mastodon: <a
+        href="https://cupoftea.social/@f11xter">@f11xter@cupoftea.social</a>
+    </p>
+  </footer>
 </body>
 
 </html>
