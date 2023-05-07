@@ -11,9 +11,16 @@ html {
 }
 
 body {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 100vh;
   max-inline-size: 60ch;
   margin: auto;
   padding: 0.5em;
+}
+
+main {
+  flex: 1;
 }
 
 h1,
