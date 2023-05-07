@@ -117,7 +117,7 @@ cite {
 }
 
 #monument p {
-  word-break: break-all;
+  overflow-wrap: break-word;
 }
 
 /* date field */
