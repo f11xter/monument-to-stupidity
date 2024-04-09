@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Monument to Stupidity</title>
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="author" content="Felix Waller" />
+  <meta name="description"
+    content="The Monument to Stupidity is a place to share your mistakes and revel in their humanity." />
+  <meta property="og:description"
+    content="The Monument to Stupidity is a place to share your mistakes and revel in their humanity." />
+  <meta property="og:title" content="Monument to Stupidity" />
+
+  <link href="styles.css" rel="stylesheet" />
+</head>
+
+<body class="flow">
+  <header>
+    <h1>Monument to Stupidity</h1>
+
+    {{if .hasError}}
+    <p style="color: red">Something went wrong. Please try again.</p>
+    {{end}}
+  </header>
+
+  <main>
+    <p>
+      The <cite>Monument to Stupidity</cite> is a place to share your
+      mistakes and revel in their humanity. Sometimes we mess up and
+      that's OK. <a href="#contribute">Share your stories</a> with us
+      completely anonymously and join us in celebrating our ongoing
+      stupidity.
+    </p>
+
+    <div id="monument">
+      {{range .posts}}
+      <div>
+        <p>{{.created}}</p>
+        <p class="flow-space:0">{{.text}}</p>
+      </div>
+      {{end}}
+    </div>
+
+    <nav>
+      {{if gt .page 0}}
+      <a href="/?page={{.prev}}" class="button">&larr; Prev</a>
+      {{else}}
+      <place-holder></place-holder>
+      {{end}}
+
+      {{if lt .page .maxPage}}
+      <a href="/?page={{.next}}" class="button">Next &rarr;</a>
+      {{else}}
+      <place-holder></place-holder>
+      {{end}}
+    </nav>
+
+    <h2 id="contribute">Contribute to the monument</h2>
+
+    <form method="post">
+      <label for="text">Tell us about a mistake you made:</label>
+
+      <textarea id="text" name="text" class="inline-size:100%" rows="5" spellcheck="true" minlength="3" maxlength="1000"
+        required></textarea>
+
+      <p id="countWrapper" hidden><span id="count">0</span> / 1000 characters</p>
+
+      <button type="submit">Post</button>
+    </form>
+  </main>
+
+  <footer>
+    <hr />
+    <p>
+      Got feedback or suggestions? Let me know on Mastodon:
+      <a href="https://cupoftea.social/@f11xter">@f11xter@cupoftea.social</a>
+    </p>
+  </footer>
+
+  <script>
+    countWrapper.hidden = false;
+    text.addEventListener("input", () => {
+      count.textContent = text.value.length;
+    });
+  </script>
+</body>
+
+</html>
