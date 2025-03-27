@@ -1,21 +1,16 @@
 /// <reference path="../pb_data/types.d.ts" />
 migrate((db) => {
-  const dao = new Dao(db);
-  const collection = dao.findCollectionByNameOrId("gus7yr77zrw8utp");
-
-  return dao.deleteCollection(collection);
-}, (db) => {
   const collection = new Collection({
-    "id": "gus7yr77zrw8utp",
-    "created": "2024-04-09 08:21:19.465Z",
-    "updated": "2024-04-09 08:22:24.621Z",
-    "name": "view",
+    "id": "rmtahs3ye4vrhkh",
+    "created": "2025-03-27 21:22:30.739Z",
+    "updated": "2025-03-27 21:22:30.739Z",
+    "name": "count",
     "type": "view",
     "system": false,
     "schema": [
       {
         "system": false,
-        "id": "ns0oihfc",
+        "id": "ju193cdu",
         "name": "count",
         "type": "number",
         "required": false,
@@ -35,9 +30,14 @@ migrate((db) => {
     "updateRule": null,
     "deleteRule": null,
     "options": {
-      "query": "SELECT (ROW_NUMBER() OVER()) AS id, count(*) as count from \"posts\";"
+      "query": "SELECT (ROW_NUMBER() OVER()) AS id, COUNT(*) AS count FROM \"posts\" WHERE \"visible\" = TRUE"
     }
   });
 
   return Dao(db).saveCollection(collection);
+}, (db) => {
+  const dao = new Dao(db);
+  const collection = dao.findCollectionByNameOrId("rmtahs3ye4vrhkh");
+
+  return dao.deleteCollection(collection);
 })
