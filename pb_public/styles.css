@@ -39,6 +39,10 @@ nav {
   gap: 16px;
 }
 
+nav * {
+  --flow-space: 0;
+}
+
 textarea {
   display: block;
   resize: vertical;
@@ -85,6 +89,28 @@ textarea:invalid+p>span {
 
 cite {
   font-style: italic;
+}
+
+dialog {
+  margin: auto;
+  max-inline-size: 60ch;
+  border: none;
+  background: transparent;
+}
+
+dialog::backdrop {
+  background-color: #0006;
+}
+
+dialog form {
+  margin-inline: .5rem;
+  padding: .5rem;
+  background-color: white;
+  border: 3px solid black;
+}
+
+dialog button {
+  margin: 4px 0 4px auto;
 }
 
 .flow *+* {

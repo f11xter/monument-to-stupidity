@@ -13,10 +13,21 @@
     content="The Monument to Stupidity is a place to share your mistakes and revel in their humanity." />
   <meta property="og:title" content="Monument to Stupidity" />
 
-  <link href="styles.css" rel="stylesheet" />
+  <link href="styles.css?v0" rel="stylesheet" />
 </head>
 
 <body class="flow">
+  {{if .isSuccess}}
+  <dialog id=success_dialog>
+    <form method=dialog>
+      Thank you for sharing. I vet new posts intermittently for spam so check back soon to see your stupidity added to the monument!
+      <button>Close</button>
+    </form>
+  </dialog>
+  {{end}}
+
+  <p id=success_p>Thank you for sharing. I check new posts intermittently for spam so check back soon to see your stupidity added to the monument!</p>
+
   <header>
     <h1>Monument to Stupidity</h1>
 
@@ -84,6 +95,9 @@
     text.addEventListener("input", () => {
       count.textContent = text.value.length;
     });
+
+    success_p.hidden = true;
+    success_dialog.showModal();    
   </script>
 </body>
 
